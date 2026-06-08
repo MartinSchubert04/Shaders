@@ -1,0 +1,8 @@
+If:
+  PathMatch: src/.*
+CompileFlags:
+  Add:
+    - -std=c++17
+    - -x
+    - c++
+    - -Iinclude
