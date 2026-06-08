@@ -4,10 +4,17 @@ int main() {
   InitWindow(1200, 1000, "Hello");
 
   auto shader = LoadShader("assets/shader.vs", "assets/shader.fs");
+  double lastModified = GetFileModTime("assets/shader.fs");
 
   while (!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(BLACK);
+    double currentModTime = GetFileModTime("assets/shader.fs");
+    if (currentModTime != lastModified) {
+      UnloadShader(shader);
+      shader = LoadShader(0, "assets/shader.fs");
+      lastModified = currentModTime;
+    }
 
     SetWindowTitle(TextFormat("GLSL shaders | fps: %d", GetFPS()));
 
