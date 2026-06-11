@@ -1,39 +1,58 @@
+#include "SphereMesh.h"
+#include "pch.h"
 #include "raylib.h"
+#include "raymath.h"
 
 int main() {
-  InitWindow(1200, 1000, "Hello");
+  SetConfigFlags(FLAG_MSAA_4X_HINT);
+  InitWindow(1280, 720, "Planeta procedural — icoesfera");
+  SetTargetFPS(60);
 
-  auto shader = LoadShader("assets/shader.vs", "assets/shader.fs");
-  double lastModified = GetFileModTime("assets/shader.fs");
+  Camera3D cam = {0};
+  cam.position = Vector3{0.0f, 1.2f, 3.2f};
+  cam.target = Vector3{0.0f, 0.0f, 0.0f};
+  cam.up = Vector3{0.0f, 1.0f, 0.0f};
+  cam.fovy = 45.0f;
+  cam.projection = CAMERA_PERSPECTIVE;
+
+  int subdiv = 3;
+  SphereMesh sphere = SphereMesh(subdiv);
+  Material mat = LoadMaterialDefault();
+  bool wireframe = false;
+
+  Shader sphereShader = LoadShader("assets/sphere.vs", "assets/sphere.fs");
+  mat.shader = sphereShader;
+  double lastModified = GetFileModTime("assets/sphere.fs");
 
   while (!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(BLACK);
-    double currentModTime = GetFileModTime("assets/shader.fs");
+    SetWindowTitle(TextFormat("GLSL shaders | fps: %d", GetFPS()));
+
+    double currentModTime = GetFileModTime("assets/sphere.fs");
     if (currentModTime != lastModified) {
-      UnloadShader(shader);
-      shader = LoadShader(0, "assets/shader.fs");
+      UnloadShader(sphereShader);
+      sphereShader = LoadShader(0, "assets/shader.fs");
       lastModified = currentModTime;
     }
 
-    SetWindowTitle(TextFormat("GLSL shaders | fps: %d", GetFPS()));
+    Vector3 lightPos = {3.0f, 5.0f, 3.0f};
+    Vector3 viewPos = cam.position;
+    SetShaderValue(sphereShader, GetShaderLocation(sphereShader, "lightPos"),
+                   &lightPos, SHADER_UNIFORM_VEC3);
+    SetShaderValue(sphereShader, GetShaderLocation(sphereShader, "viewPos"),
+                   &viewPos, SHADER_UNIFORM_VEC3);
 
-    int resPos = GetShaderLocation(shader, "iResolution");
-    Vector3 res = {(float)GetScreenWidth(), (float)GetScreenHeight(), 0.0f};
-    SetShaderValue(shader, resPos, &res, SHADER_UNIFORM_VEC3);
+    BeginMode3D(cam);
 
-    int timeLoc = GetShaderLocation(shader, "iTime");
-    float time = GetTime();
-    SetShaderValue(shader, timeLoc, &time, SHADER_UNIFORM_FLOAT);
+    DrawMesh(sphere._mesh, mat, MatrixIdentity());
 
-    BeginShaderMode(shader);
-    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), WHITE);
-    EndShaderMode();
+    EndMode3D();
 
     EndDrawing();
   }
 
-  UnloadShader(shader);
+  UnloadShader(sphereShader);
   CloseWindow();
 
   return 0;
