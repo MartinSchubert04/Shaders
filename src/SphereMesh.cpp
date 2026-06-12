@@ -68,7 +68,7 @@ void SphereMesh::buildMesh() {
   _mesh.colors =
       (unsigned char *)MemAlloc(_mesh.vertexCount * 4 * sizeof(unsigned char));
 
-  const Color baseColor = {110, 160, 210, 255};
+  const Color baseColor = RAYWHITE;
 
   for (int i = 0; i < _mesh.vertexCount; i++) {
     _mesh.vertices[i * 3 + 0] = verts[i].x;
